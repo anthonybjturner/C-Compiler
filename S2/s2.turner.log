@@ -1,0 +1,31 @@
+e Version 1.7
+Log file s2.turner.log
+
+Your name:          Turner Anthony B.
+Machinecode file:   s2.e        
+Check file:         s2.chk
+Check data:         9f11 136 108 5457 7179
+
+=================== Tue Apr 05 00:35:47 2016 ==============r
+4107
+4107
+2075
+2075
+1010
+1010
+20
+20
+10
+10
+15
+15
+
+===========================================================r
+
+Report for:         Turner Anthony B.
+Program output:     correct
+Machine code size:  136    (at limit)
+Machine inst count: 108    (at limit)
+Execution time:     5457   (at limit)
+
+================ r(6502) terminated Tue Apr 05 00:35:47 2016

@@ -1,0 +1,21 @@
+e Version 1.7
+Log file S1.turner.log
+
+Your name:          Turner Anthony B.
+Machinecode file:   S1.e        
+Check file:         S1.chk
+Check data:         bafd 42 32 440 4dfb
+
+=================== Mon Apr 04 18:14:43 2016 ==============r
+4107
+4107
+
+===========================================================r
+
+Report for:         Turner Anthony B.
+Program output:     correct
+Machine code size:  42     (at limit)
+Machine inst count: 32     (at limit)
+Execution time:     440    (at limit)
+
+================ r(ddf1) terminated Mon Apr 04 18:14:43 2016

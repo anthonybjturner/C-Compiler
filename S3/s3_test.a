@@ -1,0 +1,5 @@
+; Anthony B. Turner    Thu Mar 17 04:40:53 2016
+; Output from S3 compiler
+; println("test");          pc        label
+          sout
+^label:   dw        println

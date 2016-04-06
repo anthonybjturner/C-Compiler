@@ -1,0 +1,40 @@
+e Version 1.7
+Log file S3Test.turner.log
+
+Your name:          Turner Anthony B.
+Machinecode file:   S3Test.e    
+Check file:         S3Test.chk
+Check data:         7ada 380 200 6309 9d71
+
+=================== Wed Apr 06 08:14:42 2016 ==============r
+
+
+S1 test done
+
+
+10
+
+
+
+
+
+
+
+S2 test done
+four lines follow
+one line15
+one line
+third line
+fourth line
+15 = 1520 = 104107 = 10
+-14 = 74107S3 test done
+
+===========================================================r
+
+Report for:         Turner Anthony B.
+Program output:     NOT CORRECT               <----- ERROR
+Machine code size:  294    (86   under limit)
+Machine inst count: 148    (52   under limit)
+Execution time:     5742   (567  under limit)
+
+================ r(6b61) terminated Wed Apr 06 08:14:42 2016

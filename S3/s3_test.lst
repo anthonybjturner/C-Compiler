@@ -1,0 +1,28 @@
+a Assembler Version 1.7    Thu Mar 17 00:37:19 2016
+
+  LOC   MACHINE      ASSEMBLY
+hex*dec  CODE          CODE
+
+               ; Anthony B. Turner    Thu Mar 17 00:30:56 2016
+               ; Output from S2 compiler
+               ;    x = +2 + -1;
+0  *0    100B            pc        x
+1  *1    F700            pwc       2
+2  *2    0002
+3  *3    F700            pwc       -1
+4  *4    FFFF
+5  *5    F100            add 
+6  *6    F300            stav
+               ;    println(x);          p         x
+7  *7    FFFD            dout
+8  *8    100A            pc        '\n'
+9  *9    FFFB            aout
+                         
+A  *10   FFFF            halt
+               
+B  *11   0000  x:        dw        0
+C  *12   ========= end of s3_test.a ========================
+
+asm in  = s3_test.a
+asm out = s3_test.e
+asm lst = s3_test.lst 

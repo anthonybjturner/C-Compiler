@@ -1,0 +1,62 @@
+a Assembler Version 1.7    Mon Apr 04 18:13:33 2016
+
+  LOC   MACHINE      ASSEMBLY
+hex*dec  CODE          CODE
+
+               ; Anthony J. Dos Reis    Mon Apr 04 18:10:29 2016
+               ; Output from S1 compiler
+               ;    x = +3 + -2 + 1;
+0  *0    1027            pc        x
+1  *1    F700            pwc       3
+2  *2    0003
+3  *3    F700            pwc       -2
+4  *4    FFFE
+5  *5    F100            add 
+6  *6    F700            pwc       1
+7  *7    0001
+8  *8    F100            add 
+9  *9    F300            stav
+               ;    y = x;
+A  *10   1028            pc        y
+B  *11   0027            p         x
+C  *12   F300            stav
+               ;    z = x*(2 + y) + (((4099)));
+D  *13   1029            pc        z
+E  *14   0027            p         x
+F  *15   F700            pwc       2
+10 *16   0002
+11 *17   0028            p         y
+12 *18   F100            add 
+13 *19   FF40            mult
+14 *20   F700            pwc       4099
+15 *21   1003
+16 *22   F100            add 
+17 *23   F300            stav
+               ;  
+               ;    println(z + x + -2);
+18 *24   0029            p         z
+19 *25   0027            p         x
+1A *26   F100            add 
+1B *27   F700            pwc       -2
+1C *28   FFFE
+1D *29   F100            add 
+1E *30   FFFD            dout
+1F *31   100A            pc        '\n'
+20 *32   FFFB            aout
+               ;    println(4107); 
+21 *33   F700            pwc       4107
+22 *34   100B
+23 *35   FFFD            dout
+24 *36   100A            pc        '\n'
+25 *37   FFFB            aout
+                         
+26 *38   FFFF            halt
+               
+27 *39   0000  x:        dw        0
+28 *40   0000  y:        dw        0
+29 *41   0000  z:        dw        0
+2A *42   ========= end of S1.a =============================
+
+asm in  = S1.a
+asm out = S1.e
+asm lst = S1.lst 

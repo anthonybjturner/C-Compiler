@@ -1,0 +1,25 @@
+; Anthony B. Turner    Thu Mar 17 04:47:01 2016
+; Output from S3 compiler
+;    x = +3 + -2 + 1;
+          pc        x
+          pwc       3
+          pwc       -2
+          add 
+          pwc       1
+          add 
+          stav
+;    y = x;
+          pc        y
+          p         x
+          stav
+;    z = x*(2 + y) + (((4099)));
+          pc        z
+          p         x
+          pwc       2
+          p         y
+          add 
+          mult
+          pwc       4099
+          add 
+          stav
+;    println(z + x + -2);

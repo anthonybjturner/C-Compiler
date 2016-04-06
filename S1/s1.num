@@ -1,0 +1,610 @@
+   1 // Hand-written S1 compiler in C
+   2 #include <stdio.h>  // needed by I/O functions
+   3 #include <stdlib.h> // needed by malloc and exit
+   4 #include <string.h> // needed by str functions
+   5 #include <ctype.h>  // needed by isdigit, etc.
+   6 #include <time.h>   // needed by asctime
+   7 
+   8 // Constants
+   9 
+  10 // No boolean type in C.  
+  11 // Any nonzero number is true.  Zero is false.
+  12 #define TRUE 1      
+  13 #define FALSE 0  
+  14 
+  15 // Sizes for arrays  
+  16 #define MAX 180            // size of string arrays
+  17 #define SYMTABSIZE 1000    // symbol table size
+  18 
+  19 #define END 0
+  20 #define PRINTLN 1
+  21 #define UNSIGNED 2
+  22 #define ID 3
+  23 #define ASSIGN 4
+  24 #define SEMICOLON 5
+  25 #define LEFTPAREN 6
+  26 #define RIGHTPAREN 7
+  27 #define PLUS 8
+  28 #define MINUS 9
+  29 #define TIMES 10
+  30 #define ERROR 11
+  31 
+  32 time_t timer;    // for asctime
+  33 
+  34 // Prototypes
+  35 // Function definition or prototype must 
+  36 // precede function call so compiler can 
+  37 // check for correct type, number of args
+  38 void expr(void);
+  39 
+  40 // Global Variables
+  41 
+  42 // tokenImage used in error messages.  See consume function.
+  43 char *tokenImage[12] =   
+  44 {
+  45   "<END>",
+  46   "\"println\"",
+  47   "<UNSIGNED>",
+  48   "<ID>",
+  49   "\"=\"",
+  50   "\";\"",
+  51   "\"(\"",
+  52   "\")\"",
+  53   "\"+\"",
+  54   "\"-\"",
+  55   "\"*\"",
+  56   "<ERROR>"
+  57 };
+  58 
+  59 char inFileName[MAX], outFileName[MAX], inputLine[MAX];
+  60 int debug = FALSE;
+  61 
+  62 char *symbol[SYMTABSIZE];     // symbol table
+  63 int symbolx;                  // index into symbol table
+  64 
+  65 //create new type named TOKEN
+  66 typedef struct tokentype
+  67 {
+  68    int kind;
+  69    int beginLine, beginColumn, endLine, endColumn;
+  70    char *image;
+  71    struct tokentype *next;
+  72 } TOKEN;
+  73 
+  74 
+  75 FILE *inFile, *outFile;     // file pointers
+  76 
+  77 int currentChar = '\n';
+  78 int currentColumnNumber;
+  79 int currentLineNumber;
+  80 TOKEN *currentToken;
+  81 TOKEN *previousToken; 
+  82 
+  83 //-----------------------------------------
+  84 // Abnormal end.  
+  85 // Close files so s1.a has max info for debugging
+  86 void abend(void)
+  87 {
+  88    fclose(inFile);
+  89    fclose(outFile);
+  90    exit(1);
+  91 }
+  92 //-----------------------------------------
+  93 void displayErrorLoc(void)
+  94 {
+  95     printf("Error on line %d column %d\n", currentToken ->
+  96        beginLine, currentToken -> beginColumn);
+  97 }
+  98 //-----------------------------------------
+  99 // enter symbol into symbol table if not already there
+ 100 void enter(char *s)
+ 101 {
+ 102    int i = 0;
+ 103    while (i < symbolx)
+ 104    {
+ 105       if (!strcmp(s, symbol[i]))
+ 106          break;
+ 107       i++;
+ 108    }
+ 109 
+ 110    // if s is not in symbol table, then add it 
+ 111    
+ 112    if (i == symbolx) 
+ 113       if (symbolx < SYMTABSIZE)
+ 114         symbol[symbolx++] = s;
+ 115       else
+ 116       {
+ 117          printf("System error: symbol table overflow\n");
+ 118          abend();
+ 119       }
+ 120 }
+ 121 //-----------------------------------------
+ 122 void getNextChar(void)
+ 123 {
+ 124     if (currentChar == END)
+ 125       return;
+ 126 
+ 127     if (currentChar == '\n')        // need next line?
+ 128     {
+ 129       // fgets returns 0 (false) on EOF
+ 130       if (fgets(inputLine, sizeof(inputLine), inFile))
+ 131       {
+ 132         // output source line as comment
+ 133         fprintf(outFile, "; %s", inputLine);
+ 134         currentColumnNumber = 0;
+ 135         currentLineNumber++;   
+ 136       }                                
+ 137       else  // at end of file
+ 138       {                
+ 139          currentChar = END;
+ 140          return;
+ 141       }
+ 142     }
+ 143 
+ 144     // get next char from inputLine
+ 145     currentChar =  inputLine[currentColumnNumber++];
+ 146 
+ 147     // in S2, test for single-line comment goes here
+ 148 }
+ 149 //---------------------------------------
+ 150 // This function is tokenizer (aka lexical analyzer, scanner)
+ 151 TOKEN *getNextToken(void)
+ 152 {
+ 153     char buffer[80];    // buffer to build image 
+ 154     int bufferx = 0;    // index into buffer
+ 155     TOKEN *t;	        // will point to taken struct
+ 156 
+ 157 
+ 158     // skip whitespace
+ 159     while (isspace(currentChar))
+ 160       getNextChar();
+ 161 
+ 162     // construct token to be returned to parser
+ 163     t = (TOKEN *)malloc(sizeof(TOKEN));   
+ 164     t -> next = NULL;
+ 165 
+ 166     // save start-of-token position
+ 167     t -> beginLine = currentLineNumber;
+ 168     t -> beginColumn = currentColumnNumber;
+ 169 
+ 170     // check for END
+ 171     if (currentChar == END)
+ 172     {
+ 173       t -> image = "<END>";
+ 174       t -> endLine = currentLineNumber;
+ 175       t -> endColumn = currentColumnNumber;
+ 176       t -> kind = END;
+ 177     }
+ 178 
+ 179     else  // check for unsigned int
+ 180 
+ 181     if (isdigit(currentChar)) 
+ 182     {
+ 183       do
+ 184       {
+ 185         buffer[bufferx++] = currentChar; 
+ 186         t -> endLine = currentLineNumber;
+ 187         t -> endColumn = currentColumnNumber;
+ 188         getNextChar();
+ 189       } while (isdigit(currentChar));
+ 190 
+ 191       buffer[bufferx] = '\0';   // term string with null char
+ 192       // save buffer as String in token.image
+ 193       // strdup allocates space and copies string to it
+ 194       t -> image = strdup(buffer);   
+ 195       t -> kind = UNSIGNED;
+ 196     }
+ 197 
+ 198     else  // check for identifier
+ 199     if (isalpha(currentChar)) 
+ 200     { 
+ 201       do  // build token image in buffer
+ 202       {
+ 203         buffer[bufferx++] = currentChar; 
+ 204         t -> endLine = currentLineNumber;
+ 205         t -> endColumn = currentColumnNumber;
+ 206         getNextChar();
+ 207       } while (isalnum(currentChar));
+ 208      
+ 209       buffer[bufferx] = '\0';
+ 210 
+ 211       // save buffer as String in token.image
+ 212       t -> image = strdup(buffer);
+ 213 
+ 214       // check if keyword
+ 215       if (!strcmp(t -> image, "println"))
+ 216         t -> kind = PRINTLN;
+ 217       else  // not a keyword so kind is ID
+ 218         t -> kind = ID;
+ 219     }
+ 220 
+ 221     else  // process single-character token
+ 222     {  
+ 223       switch(currentChar)
+ 224       {
+ 225         case '=':
+ 226           t -> kind = ASSIGN;
+ 227           break;                               
+ 228         case ';':
+ 229           t -> kind = SEMICOLON;
+ 230           break;                               
+ 231         case '(':
+ 232           t -> kind = LEFTPAREN;
+ 233           break;                               
+ 234         case ')':
+ 235           t -> kind = RIGHTPAREN;
+ 236           break;                               
+ 237         case '+':
+ 238           t -> kind = PLUS;
+ 239           break;                               
+ 240         case '-':
+ 241           t -> kind = MINUS;
+ 242           break;                               
+ 243         case '*':
+ 244           t -> kind = TIMES;
+ 245           break;                               
+ 246         default:
+ 247           t -> kind = ERROR;
+ 248           break;                               
+ 249       }
+ 250 
+ 251       // save currentChar as string in image field
+ 252       t -> image = (char *)malloc(2);  // get space
+ 253       (t -> image)[0] = currentChar;   // move in string
+ 254       (t -> image)[1] = '\0';
+ 255       
+ 256 
+ 257       // save end-of-token position
+ 258       t -> endLine = currentLineNumber;
+ 259       t -> endColumn = currentColumnNumber;
+ 260 
+ 261       getNextChar();  // read beyond end of token
+ 262     }
+ 263     // token trace appears as comments in output file
+ 264     
+ 265     // set debug to true to check tokenizer
+ 266     if (debug)
+ 267       fprintf(outFile, 
+ 268         "; kd=%3d bL=%3d bC=%3d eL=%3d eC=%3d     im=%s\n",
+ 269         t -> kind, t -> beginLine, t -> beginColumn, 
+ 270         t -> endLine, t -> endColumn, t -> image);
+ 271 
+ 272     return t;     // return token to parser
+ 273 }     
+ 274 //-----------------------------------------
+ 275 //
+ 276 // Advance currentToken to next token.
+ 277 //
+ 278 void advance(void)
+ 279 {
+ 280     static int firstTime = TRUE;
+ 281  
+ 282 
+ 283     if (firstTime)
+ 284     {
+ 285        firstTime = FALSE;
+ 286        currentToken = getNextToken();
+ 287     }
+ 288     else
+ 289     {
+ 290        previousToken = currentToken; 
+ 291 
+ 292        // If next token is on token list, advance to it.
+ 293        if (currentToken -> next != NULL)
+ 294          currentToken = currentToken -> next;
+ 295 
+ 296        // Otherwise, get next token from token mgr and 
+ 297        // put it on the list.
+ 298        else
+ 299          currentToken = (currentToken -> next) = 
+ 300             getNextToken();
+ 301     }
+ 302 }
+ 303 //-----------------------------------------
+ 304 // If the kind of the current token matches the
+ 305 // expected kind, then consume advances to the next
+ 306 // token. Otherwise, it throws an exception.
+ 307 //
+ 308 void consume(int expected)
+ 309 {
+ 310     if (currentToken -> kind == expected)
+ 311       advance();
+ 312     else
+ 313     {
+ 314        displayErrorLoc();       
+ 315        printf("Scanning %s, expecting %s\n", 
+ 316           currentToken -> image, tokenImage[expected]);
+ 317        abend();
+ 318     }
+ 319 }
+ 320 //-----------------------------------------
+ 321 // This function not used in S1
+ 322 // getToken(i) returns ith token without advancing
+ 323 // in token stream.  getToken(0) returns 
+ 324 // previousToken.  getToken(1) returns currentToken.
+ 325 // getToken(2) returns next token, and so on.
+ 326 //
+ 327 TOKEN *getToken(int i)
+ 328 {
+ 329     TOKEN *t;
+ 330     int j;
+ 331     if (i <= 0)
+ 332       return previousToken;
+ 333 
+ 334     t = currentToken;
+ 335     for (j = 1; j < i; j++)  // loop to ith token
+ 336     {
+ 337       // if next token is on token list, move t to it
+ 338       if (t -> next != NULL)
+ 339         t = (t -> next);
+ 340 
+ 341       // Otherwise, get next token from token mgr and 
+ 342       // put it on the list.
+ 343       else
+ 344         t = (t -> next) = getNextToken();
+ 345     }
+ 346     return t;
+ 347 }
+ 348 //-----------------------------------------
+ 349 // emit one-operand instruction
+ 350 void emitInstruction1(char *op)
+ 351 {
+ 352     fprintf(outFile, "          %-4s\n", op); 
+ 353 }
+ 354 //-----------------------------------------
+ 355 // emit two-operand instruction
+ 356 // function overloading not supported by C
+ 357 void emitInstruction2(char *op, char *opnd)
+ 358 {           
+ 359     fprintf(outFile, 
+ 360        "          %-4s      %s\n", op,opnd); 
+ 361 }
+ 362 //-----------------------------------------
+ 363 void emitdw(char *label, char *value)
+ 364 {         
+ 365     char temp[80];
+ 366     strcpy(temp, label);
+ 367     strcat(temp, ":");
+ 368       
+ 369     fprintf(outFile,
+ 370        "%-9s dw        %s\n", temp, value);
+ 371 }
+ 372 //-----------------------------------------
+ 373 void endCode(void)
+ 374 {
+ 375     int i;
+ 376     emitInstruction1("\n          halt\n");
+ 377 
+ 378     // emit dw for each symbol in the symbol table
+ 379     for (i=0; i < symbolx; i++) 
+ 380        emitdw(symbol[i], "0");      
+ 381 }
+ 382 //-----------------------------------------
+ 383 void factor(void)
+ 384 {  
+ 385     TOKEN *t;
+ 386     char temp[MAX];
+ 387 
+ 388    // printf("%s ", currentToken -> image);
+ 389     switch(currentToken -> kind)
+ 390     {
+ 391       case UNSIGNED:
+ 392         t = currentToken;
+ 393         consume(UNSIGNED);
+ 394         emitInstruction2("pwc", t -> image);
+ 395         break;
+ 396       case PLUS:
+ 397         consume(PLUS);
+ 398         t = currentToken;
+ 399         consume(UNSIGNED);
+ 400         emitInstruction2("pwc", t -> image);
+ 401         break;
+ 402       case MINUS:
+ 403         consume(MINUS);
+ 404         t = currentToken;
+ 405         consume(UNSIGNED);
+ 406         strcpy(temp, "-");
+ 407         strcat(temp, t -> image);
+ 408         emitInstruction2("pwc", temp);
+ 409         break;
+ 410       case ID:
+ 411         t = currentToken;
+ 412         consume(ID);
+ 413         enter(t -> image);
+ 414         emitInstruction2("p", t -> image);
+ 415         break;
+ 416       case LEFTPAREN:
+ 417         consume(LEFTPAREN);
+ 418         expr();
+ 419         consume(RIGHTPAREN);
+ 420         break;
+ 421       default:
+ 422         displayErrorLoc();
+ 423         printf("Scanning %s, expecting factor\n", currentToken ->
+ 424            image);
+ 425         abend();
+ 426     }
+ 427 }
+ 428 //-----------------------------------------
+ 429 void factorList(void)
+ 430 {
+ 431     switch(currentToken -> kind)
+ 432     {
+ 433       case TIMES:
+ 434         consume(TIMES);
+ 435         factor();
+ 436         emitInstruction1("mult");
+ 437         factorList();
+ 438         break;
+ 439       case PLUS:
+ 440       case RIGHTPAREN:
+ 441       case SEMICOLON:
+ 442         ;
+ 443         break;
+ 444       default:
+ 445         displayErrorLoc();
+ 446         printf("Scanning %s, expecting op, \")\", or \";\"\n",
+ 447            currentToken -> image);
+ 448         abend();
+ 449     }
+ 450 }
+ 451 //-----------------------------------------
+ 452 void term(void)
+ 453 {
+ 454     factor();
+ 455     factorList();
+ 456 }
+ 457 //-----------------------------------------
+ 458 void termList(void)
+ 459 {
+ 460     switch(currentToken -> kind)
+ 461     {
+ 462       case PLUS:
+ 463         consume(PLUS);
+ 464         term();
+ 465         emitInstruction1("add");
+ 466         termList();
+ 467         break;
+ 468       case RIGHTPAREN:
+ 469       case SEMICOLON:
+ 470         ;
+ 471         break;
+ 472       default:
+ 473         displayErrorLoc();
+ 474         printf(
+ 475            "Scanning %s, expecting \"+\", \")\", or \";\"\n",
+ 476            currentToken -> image);
+ 477         abend();
+ 478     }
+ 479 }
+ 480 //-----------------------------------------
+ 481 void expr(void)
+ 482 {
+ 483     term();
+ 484     termList();
+ 485 }
+ 486 //-----------------------------------------
+ 487 void assignmentStatement(void)
+ 488 {
+ 489     TOKEN *t;
+ 490 
+ 491     t = currentToken;
+ 492     consume(ID);
+ 493     enter(t -> image);
+ 494     emitInstruction2("pc", t -> image);
+ 495     consume(ASSIGN);
+ 496     expr();
+ 497     emitInstruction1("stav");
+ 498     consume(SEMICOLON);
+ 499 }
+ 500 //-----------------------------------------
+ 501 void printlnStatement(void)
+ 502 {
+ 503     consume(PRINTLN);                                   
+ 504     consume(LEFTPAREN);
+ 505     expr();
+ 506     emitInstruction1("dout");
+ 507     emitInstruction2("pc", "'\\n'");
+ 508     emitInstruction1("aout");
+ 509     consume(RIGHTPAREN);
+ 510     consume(SEMICOLON);
+ 511 }
+ 512 //-----------------------------------------
+ 513 void statement(void)
+ 514 {
+ 515     switch(currentToken -> kind)
+ 516     {
+ 517       case ID: 
+ 518         assignmentStatement(); 
+ 519         break;
+ 520       case PRINTLN:    
+ 521         printlnStatement(); 
+ 522         break;
+ 523       default:  
+ 524         displayErrorLoc();      
+ 525         printf("Scanning %s, expecting statement\n",
+ 526            currentToken -> image);
+ 527         abend();
+ 528     }
+ 529 }
+ 530 //-----------------------------------------
+ 531 void statementList(void)
+ 532 {
+ 533     switch(currentToken -> kind)
+ 534     {
+ 535       case ID:
+ 536       case PRINTLN:
+ 537         statement();
+ 538         statementList();
+ 539         break;
+ 540       case END:
+ 541         ;                  
+ 542         break;
+ 543       default:
+ 544         displayErrorLoc();
+ 545         printf(
+ 546            "Scanning %s, expecting statement or end of file\n",
+ 547            currentToken -> image);        
+ 548         abend();
+ 549     }
+ 550 }
+ 551 //-----------------------------------------
+ 552 void program(void)
+ 553 {
+ 554     statementList();
+ 555     endCode();
+ 556 }
+ 557 //-----------------------------------------
+ 558 void parse(void)
+ 559 {
+ 560     advance();
+ 561     program();   // program is start symbol for grammar
+ 562 }
+ 563 //-----------------------------------------
+ 564 int main(int argc, char *argv[])
+ 565 {
+ 566    printf("S1 compiler written by Anthony J. Dos Reis\n");
+ 567    if (argc != 2)
+ 568    {
+ 569       printf("Incorrect number of command line args\n");
+ 570       exit(1);
+ 571    }
+ 572 
+ 573 
+ 574     // build the input and output file names
+ 575     strcpy(inFileName, argv[1]);
+ 576     strcat(inFileName, ".s");       // append extension
+ 577 
+ 578     strcpy(outFileName, argv[1]);
+ 579     strcat(outFileName, ".a");      // append extension
+ 580 
+ 581     inFile = fopen(inFileName, "r");
+ 582     if (!inFile)
+ 583     {
+ 584        printf("Error: Cannot open %s\n", inFileName);
+ 585        exit(1);
+ 586     }
+ 587     outFile = fopen(outFileName, "w");
+ 588     if (!outFile)
+ 589     {
+ 590        printf("Error: Cannot open %s\n", outFileName);
+ 591        exit(1);
+ 592     }
+ 593     
+ 594     time(&timer);     // get time
+ 595     fprintf(outFile, "; Anthony J. Dos Reis    %s",
+ 596        asctime(localtime(&timer)));
+ 597     fprintf(outFile, 
+ 598        "; Output from S1 compiler\n");
+ 599 
+ 600     parse();
+ 601 
+ 602     fclose(inFile);
+ 603     
+ 604     // must close output file or will lose most recent writes
+ 605     fclose(outFile);     
+ 606 
+ 607     // 0 return code means compile ended without error 
+ 608     return 0;  
+ 609 }
+ 610                                 
