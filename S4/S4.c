@@ -1,4 +1,4 @@
-// Hand-written s3 compiler in C
+// Hand-written s4 compiler in C
 #include <stdio.h>  // needed by I/O functions
 #include <stdlib.h> // needed by malloc and exit
 #include <string.h> // needed by str functions
@@ -31,8 +31,10 @@
 #define LEFTBRACKET 12
 #define RIGHTBRACKET 13
 #define PRINT 14
-#define STRING 15
-#define ERROR 16
+#define READINT 15
+#define WHILE 16
+#define STRING 17
+#define ERROR 18
 
 time_t timer;    // for asctime
 
@@ -42,11 +44,11 @@ time_t timer;    // for asctime
 // check for correct type, number of args
 void expr(void);
 void compoundStatement(void);
-
+void whileStatement(void);
 // Global Variables
 int labelNumber = 0;
 // tokenImage used in error messages.  See consume function.
-char *tokenImage[17] =   
+char *tokenImage[19] =   
 {
   "<END>",
   "\"println\"",
@@ -63,6 +65,8 @@ char *tokenImage[17] =
   "\"{\"",
   "\"}\"",
   "\"print\"",
+  "\"readint\"",
+  "\"while\"",
   "<STRING>",
   "<ERROR>"
 };
@@ -93,7 +97,7 @@ TOKEN *previousToken;
 
 //-----------------------------------------
 // Abnormal end.  
-// Close files so s3.a has max info for debugging
+// Close files so s4.a has max info for debugging
 void abend(void)
 {
    fclose(inFile);
@@ -155,7 +159,7 @@ void getNextChar(void)
     // get next char from inputLine
     currentChar =  inputLine[currentColumnNumber++];
 
-    // in s3, test for single-line comment goes here
+    // in s4, test for single-line comment goes here
        if( currentChar == '/' && inputLine[ currentColumnNumber] == '/')
         currentChar = '\n';
     
@@ -231,6 +235,10 @@ TOKEN *getNextToken(void)
       }
       else if (!strcmp(t -> image, "print")){
         t -> kind = PRINT;
+      }else if (!strcmp(t -> image, "readint")){
+        t -> kind = READINT;
+      }else if (!strcmp(t -> image, "while")){
+        t -> kind = WHILE;
       }
       else{  // not a keyword so kind is ID
         t -> kind = ID;
@@ -240,15 +248,17 @@ TOKEN *getNextToken(void)
       do // build token image in buffer
       {
 
+         t -> kind = STRING;
          buffer[bufferx++] = currentChar; 
          t -> endLine = currentLineNumber;
          t -> endColumn = currentColumnNumber;
         getNextChar();
 
         if( currentChar == '\n' || currentChar == '\r'){
-          t -> kind = ERROR;
-          currentChar = END;
-          break;
+         // t -> kind = ERROR;
+         // currentChar = END;
+         // break;
+          currentChar = '/';
         }
 
 
@@ -379,7 +389,7 @@ void consume(int expected)
     }
 }
 //-----------------------------------------
-// This function not used in s3
+// This function not used in s4
 // getToken(i) returns ith token without advancing
 // in token stream.  getToken(0) returns 
 // previousToken.  getToken(1) returns currentToken.
@@ -454,31 +464,72 @@ void factor(void)
         consume(UNSIGNED);
         emitInstruction2("pwc", t -> image);
         break;
-      case PLUS:
-        consume(PLUS);
-        t = currentToken;
-        consume(UNSIGNED);
-        emitInstruction2("pwc", t -> image);
-        break;
-      case MINUS:
-        consume(MINUS);
-        t = currentToken;
-        consume(UNSIGNED);
-        strcpy(temp, "-");
-        strcat(temp, t -> image);
-        emitInstruction2("pwc", temp);
-        break;
       case ID:
         t = currentToken;
         consume(ID);
         enter(t -> image);
         emitInstruction2("p", t -> image);
         break;
+      case PLUS:
+        consume(PLUS);
+        factor();
+        break;
+
       case LEFTPAREN:
         consume(LEFTPAREN);
         expr();
         consume(RIGHTPAREN);
         break;
+      
+      case MINUS:
+        consume(MINUS);
+        switch( currentToken -> kind){
+
+
+          case UNSIGNED:
+            t = currentToken;
+            consume(UNSIGNED);
+            strcpy(temp, "-");
+            strcat(temp, t -> image);
+            emitInstruction2("pwc", t -> image);
+            break;
+          case ID:
+            t = currentToken;
+            consume(ID);
+            enter(t -> image);
+            emitInstruction2("p", t -> image);
+            emitInstruction1("neg");
+            break;
+
+          case LEFTPAREN:
+            consume(LEFTPAREN);
+            expr();
+            consume(RIGHTPAREN);
+            emitInstruction1("neg");
+
+            break;
+
+          case PLUS:
+            consume(PLUS);
+            factor();
+            break;
+
+            case MINUS:
+            consume(MINUS);
+            factor();
+            break;
+        }
+        break;
+
+      /*  t = currentToken;
+        consume(UNSIGNED);
+        strcpy(temp, "-");
+        strcat(temp, t -> image);
+        emitInstruction2("pwc", temp);
+        break;
+
+        */      
+     
       default:
         displayErrorLoc();
         printf("Scanning %s, expecting factor\n", currentToken ->
@@ -571,6 +622,34 @@ void expr(void)
     term();
     termList();
 }
+
+void assignmentTail(void){
+
+  TOKEN *t;
+  //LOOKAHEAD(2);
+ 
+  if(currentToken -> kind == ID && getToken(2) ->kind == ASSIGN){
+
+    
+       t = currentToken;
+      consume(ID);
+      enter(t -> image);
+      emitInstruction2("pc", t -> image);
+  
+      consume(ASSIGN);
+      assignmentTail();
+      emitInstruction1("dupe" );
+      emitInstruction1("rot" );
+      emitInstruction1("stav" );
+
+    }else{
+
+        expr();
+    }
+
+
+}
+
 //-----------------------------------------
 void assignmentStatement(void)
 {
@@ -578,12 +657,14 @@ void assignmentStatement(void)
 
     t = currentToken;
     consume(ID);
+
     enter(t -> image);
     emitInstruction2("pc", t -> image);
     consume(ASSIGN);
-    expr();
+    assignmentTail();
+    //expr();
     emitInstruction1("stav");
-    consume(SEMICOLON);
+    //consume(SEMICOLON);
 }
 
 void printArg(void){
@@ -610,7 +691,10 @@ void printArg(void){
     case ID:
     case UNSIGNED:
     case LEFTPAREN:
+    case MINUS:
+
       expr();
+      emitInstruction1("dout");
     break;
 
   }
@@ -622,29 +706,28 @@ void printArg(void){
 void printlnStatement(void)
 {
 
-  
   consume(PRINTLN);                                   
   consume(LEFTPAREN);
 
-    switch(currentToken -> kind ){
+  switch(currentToken -> kind ){
 
         case STRING:
         case ID:
         case UNSIGNED:
         case LEFTPAREN:
+        case MINUS:
          printArg();
          break;
-
 
         case RIGHTPAREN: 
         ;
         break; 
 
-
     }
     
     emitInstruction2("pc", "'\\n'");
     emitInstruction1("aout");
+
     consume(RIGHTPAREN);
     consume(SEMICOLON);
 }
@@ -670,11 +753,8 @@ void printStatement(void)
         ;
         break; 
 
-
     }
     
-    
-    emitInstruction1("dout");
     consume(RIGHTPAREN);
     consume(SEMICOLON);
 }
@@ -682,7 +762,26 @@ void printStatement(void)
 //------------------------------
 void nullStatement(void)
 {
-   consume(SEMICOLON);
+   consume(SEMICOLON); 
+}
+
+
+void readintStatement(void){
+
+  TOKEN *t;
+
+  consume(READINT);
+  consume(LEFTPAREN);
+
+  t = currentToken;
+  consume(ID);
+  emitInstruction2("pc", t -> image);
+  emitInstruction1("din");
+  emitInstruction1("stav");
+
+   consume(RIGHTPAREN);
+    consume(SEMICOLON);
+
 }
 
 
@@ -700,12 +799,17 @@ void statement(void)
       case PRINT:    
         printStatement(); 
         break;
+        case READINT:
+        readintStatement();
+        break;
       case SEMICOLON:
         nullStatement();
         break;
       case LEFTBRACKET:
         compoundStatement();
         break;
+      case WHILE:
+        whileStatement();
       default:  
         displayErrorLoc();      
         printf("Scanning %s, expecting statement\n",
@@ -723,6 +827,8 @@ void statementList(void)
       case PRINT:
       case SEMICOLON:
       case LEFTBRACKET:
+      case READINT:
+      case WHILE:
         statement();
         statementList();
         break;
@@ -738,6 +844,29 @@ void statementList(void)
         abend();
     }
 }
+
+void whileStatement(void){
+
+  char* label;
+  char* label2;
+
+ 
+  consume(WHILE);
+  label = getLabel();
+  emitInstruction2("pc", label);
+  consume(LEFTPAREN);
+ 
+  expr();
+  consume(RIGHTPAREN);
+
+  label2 = getLabel();
+  emitInstruction2("pc", label2);
+  emitInstruction2("jz", label2);
+  statement();
+  emitInstruction2("ja", label);
+
+}
+
 
 //------------------------------
 void compoundStatement(void)
@@ -761,7 +890,7 @@ void parse(void)
 //-----------------------------------------
 int main(int argc, char *argv[])
 {
-   printf("s3 compiler written by Anthony B. Turner\n");
+   printf("s4 compiler written by Anthony B. Turner\n");
    if (argc != 2)
    {
       printf("Incorrect number of command line args\n");
@@ -793,7 +922,7 @@ int main(int argc, char *argv[])
     fprintf(outFile, "; Anthony B. Turner    %s",
        asctime(localtime(&timer)));
     fprintf(outFile, 
-       "; Output from s3 compiler\n");
+       "; Output from s4 compiler\n");
 
     parse();
 

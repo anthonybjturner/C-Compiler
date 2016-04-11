@@ -1,25 +1,620 @@
-; Anthony B. Turner    Thu Mar 17 04:47:01 2016
-; Output from S3 compiler
+; Anthony B. Turner    Mon Apr 11 06:15:10 2016
+; Output from s3 compiler
 ;    x = +3 + -2 + 1;
+; kd=  3 bL=  1 bC=  4 eL=  1 eC=  4     im=x
+; kd=  4 bL=  1 bC=  6 eL=  1 eC=  6     im==
           pc        x
+; kd=  8 bL=  1 bC=  8 eL=  1 eC=  8     im=+
+; kd=  2 bL=  1 bC=  9 eL=  1 eC=  9     im=3
+; kd=  8 bL=  1 bC= 11 eL=  1 eC= 11     im=+
           pwc       3
-          pwc       -2
+; kd=  9 bL=  1 bC= 13 eL=  1 eC= 13     im=-
+; kd=  2 bL=  1 bC= 14 eL=  1 eC= 14     im=2
+; kd=  8 bL=  1 bC= 16 eL=  1 eC= 16     im=+
+          pwc       2
           add 
+; kd=  2 bL=  1 bC= 18 eL=  1 eC= 18     im=1
+; kd=  5 bL=  1 bC= 19 eL=  1 eC= 19     im=;
           pwc       1
           add 
           stav
 ;    y = x;
+; kd=  3 bL=  2 bC=  4 eL=  2 eC=  4     im=y
+; kd=  4 bL=  2 bC=  6 eL=  2 eC=  6     im==
           pc        y
+; kd=  3 bL=  2 bC=  8 eL=  2 eC=  8     im=x
+; kd=  5 bL=  2 bC=  9 eL=  2 eC=  9     im=;
           p         x
           stav
 ;    z = x*(2 + y) + (((4099)));
+; kd=  3 bL=  3 bC=  4 eL=  3 eC=  4     im=z
+; kd=  4 bL=  3 bC=  6 eL=  3 eC=  6     im==
           pc        z
+; kd=  3 bL=  3 bC=  8 eL=  3 eC=  8     im=x
+; kd= 10 bL=  3 bC=  9 eL=  3 eC=  9     im=*
           p         x
+; kd=  6 bL=  3 bC= 10 eL=  3 eC= 10     im=(
+; kd=  2 bL=  3 bC= 11 eL=  3 eC= 11     im=2
+; kd=  8 bL=  3 bC= 13 eL=  3 eC= 13     im=+
           pwc       2
+; kd=  3 bL=  3 bC= 15 eL=  3 eC= 15     im=y
+; kd=  7 bL=  3 bC= 16 eL=  3 eC= 16     im=)
           p         y
           add 
+; kd=  8 bL=  3 bC= 18 eL=  3 eC= 18     im=+
           mult
+; kd=  6 bL=  3 bC= 20 eL=  3 eC= 20     im=(
+; kd=  6 bL=  3 bC= 21 eL=  3 eC= 21     im=(
+; kd=  6 bL=  3 bC= 22 eL=  3 eC= 22     im=(
+; kd=  2 bL=  3 bC= 23 eL=  3 eC= 26     im=4099
+; kd=  7 bL=  3 bC= 27 eL=  3 eC= 27     im=)
           pwc       4099
+; kd=  7 bL=  3 bC= 28 eL=  3 eC= 28     im=)
+; kd=  7 bL=  3 bC= 29 eL=  3 eC= 29     im=)
+; kd=  5 bL=  3 bC= 30 eL=  3 eC= 30     im=;
           add 
           stav
 ;    println(z + x + -2);
+; kd=  1 bL=  4 bC=  4 eL=  4 eC= 10     im=println
+; kd=  6 bL=  4 bC= 11 eL=  4 eC= 11     im=(
+; kd=  3 bL=  4 bC= 12 eL=  4 eC= 12     im=z
+; kd=  8 bL=  4 bC= 14 eL=  4 eC= 14     im=+
+          p         z
+; kd=  3 bL=  4 bC= 16 eL=  4 eC= 16     im=x
+; kd=  8 bL=  4 bC= 18 eL=  4 eC= 18     im=+
+          p         x
+          add 
+; kd=  9 bL=  4 bC= 20 eL=  4 eC= 20     im=-
+; kd=  2 bL=  4 bC= 21 eL=  4 eC= 21     im=2
+; kd=  7 bL=  4 bC= 22 eL=  4 eC= 22     im=)
+          pwc       2
+          add 
+          dout
+          pc        '\n'
+          aout
+; kd=  5 bL=  4 bC= 23 eL=  4 eC= 23     im=;
+;    println(4107);
+; kd=  1 bL=  5 bC=  4 eL=  5 eC= 10     im=println
+; kd=  6 bL=  5 bC= 11 eL=  5 eC= 11     im=(
+; kd=  2 bL=  5 bC= 12 eL=  5 eC= 15     im=4107
+; kd=  7 bL=  5 bC= 16 eL=  5 eC= 16     im=)
+          pwc       4107
+          dout
+          pc        '\n'
+          aout
+; kd=  5 bL=  5 bC= 17 eL=  5 eC= 17     im=;
+;    println("S1 test done");
+; kd=  1 bL=  6 bC=  4 eL=  6 eC= 10     im=println
+; kd=  6 bL=  6 bC= 11 eL=  6 eC= 11     im=(
+; kd= 16 bL=  6 bC= 12 eL=  6 eC= 25     im="S1 test done"
+; kd=  7 bL=  6 bC= 26 eL=  6 eC= 26     im=)
+          pc        @L0
+          sout
+^@L0:     dw        "S1 test done"
+          pc        '\n'
+          aout
+; kd=  5 bL=  6 bC= 27 eL=  6 eC= 27     im=;
+; //==========================================================
+; // Add support for subtraction, division, null statement, 
+; // compound statement, print statement, and single-line
+; // comments.
+;    println((z - (x - 50)   // comment in middle of statement
+; kd=  1 bL= 11 bC=  4 eL= 11 eC= 10     im=println
+; kd=  6 bL= 11 bC= 11 eL= 11 eC= 11     im=(
+; kd=  6 bL= 11 bC= 12 eL= 11 eC= 12     im=(
+; kd=  3 bL= 11 bC= 13 eL= 11 eC= 13     im=z
+; kd=  9 bL= 11 bC= 15 eL= 11 eC= 15     im=-
+          p         z
+; kd=  6 bL= 11 bC= 17 eL= 11 eC= 17     im=(
+; kd=  3 bL= 11 bC= 18 eL= 11 eC= 18     im=x
+; kd=  9 bL= 11 bC= 20 eL= 11 eC= 20     im=-
+          p         x
+; kd=  2 bL= 11 bC= 22 eL= 11 eC= 23     im=50
+; kd=  7 bL= 11 bC= 24 eL= 11 eC= 24     im=)
+          pwc       50
+          sub 
+;         ) / 2 - x);
+; kd=  7 bL= 12 bC=  9 eL= 12 eC=  9     im=)
+          sub 
+; kd= 11 bL= 12 bC= 11 eL= 12 eC= 11     im=/
+; kd=  2 bL= 12 bC= 13 eL= 12 eC= 13     im=2
+; kd=  9 bL= 12 bC= 15 eL= 12 eC= 15     im=-
+          pwc       2
+          div 
+; kd=  3 bL= 12 bC= 17 eL= 12 eC= 17     im=x
+; kd=  7 bL= 12 bC= 18 eL= 12 eC= 18     im=)
+          p         x
+          sub 
+          dout
+          pc        '\n'
+          aout
+; kd=  5 bL= 12 bC= 19 eL= 12 eC= 19     im=;
+;    println(2075);
+; kd=  1 bL= 13 bC=  4 eL= 13 eC= 10     im=println
+; kd=  6 bL= 13 bC= 11 eL= 13 eC= 11     im=(
+; kd=  2 bL= 13 bC= 12 eL= 13 eC= 15     im=2075
+; kd=  7 bL= 13 bC= 16 eL= 13 eC= 16     im=)
+          pwc       2075
+          dout
+          pc        '\n'
+          aout
+; kd=  5 bL= 13 bC= 17 eL= 13 eC= 17     im=;
+;    ;                       // null statement 
+; kd=  5 bL= 14 bC=  4 eL= 14 eC=  4     im=;
+;    {{;                     // compound statement
+; kd= 12 bL= 15 bC=  4 eL= 15 eC=  4     im={
+; kd= 12 bL= 15 bC=  5 eL= 15 eC=  5     im={
+; kd=  5 bL= 15 bC=  6 eL= 15 eC=  6     im=;
+;       {
+; kd= 12 bL= 16 bC=  7 eL= 16 eC=  7     im={
+;       x = 10;  
+; kd=  3 bL= 17 bC=  7 eL= 17 eC=  7     im=x
+; kd=  4 bL= 17 bC=  9 eL= 17 eC=  9     im==
+          pc        x
+; kd=  2 bL= 17 bC= 11 eL= 17 eC= 12     im=10
+; kd=  5 bL= 17 bC= 13 eL= 17 eC= 13     im=;
+          pwc       10
+          stav
+;       ;
+; kd=  5 bL= 18 bC=  7 eL= 18 eC=  7     im=;
+;       y = 20;
+; kd=  3 bL= 19 bC=  7 eL= 19 eC=  7     im=y
+; kd=  4 bL= 19 bC=  9 eL= 19 eC=  9     im==
+          pc        y
+; kd=  2 bL= 19 bC= 11 eL= 19 eC= 12     im=20
+; kd=  5 bL= 19 bC= 13 eL= 19 eC= 13     im=;
+          pwc       20
+          stav
+;    }};}
+; kd= 13 bL= 20 bC=  4 eL= 20 eC=  4     im=}
+; kd= 13 bL= 20 bC=  5 eL= 20 eC=  5     im=}
+; kd=  5 bL= 20 bC=  6 eL= 20 eC=  6     im=;
+; kd= 13 bL= 20 bC=  7 eL= 20 eC=  7     im=}
+;    {}
+; kd= 12 bL= 21 bC=  4 eL= 21 eC=  4     im={
+; kd= 13 bL= 21 bC=  5 eL= 21 eC=  5     im=}
+;    print(x);
+; kd= 14 bL= 22 bC=  4 eL= 22 eC=  8     im=print
+; kd=  6 bL= 22 bC=  9 eL= 22 eC=  9     im=(
+; kd=  3 bL= 22 bC= 10 eL= 22 eC= 10     im=x
+; kd=  7 bL= 22 bC= 11 eL= 22 eC= 11     im=)
+          p         x
+          dout
+; kd=  5 bL= 22 bC= 12 eL= 22 eC= 12     im=;
+;    println(x);
+; kd=  1 bL= 23 bC=  4 eL= 23 eC= 10     im=println
+; kd=  6 bL= 23 bC= 11 eL= 23 eC= 11     im=(
+; kd=  3 bL= 23 bC= 12 eL= 23 eC= 12     im=x
+; kd=  7 bL= 23 bC= 13 eL= 23 eC= 13     im=)
+          p         x
+          dout
+          pc        '\n'
+          aout
+; kd=  5 bL= 23 bC= 14 eL= 23 eC= 14     im=;
+;    println(1010);
+; kd=  1 bL= 24 bC=  4 eL= 24 eC= 10     im=println
+; kd=  6 bL= 24 bC= 11 eL= 24 eC= 11     im=(
+; kd=  2 bL= 24 bC= 12 eL= 24 eC= 15     im=1010
+; kd=  7 bL= 24 bC= 16 eL= 24 eC= 16     im=)
+          pwc       1010
+          dout
+          pc        '\n'
+          aout
+; kd=  5 bL= 24 bC= 17 eL= 24 eC= 17     im=;
+;    println(y);
+; kd=  1 bL= 25 bC=  4 eL= 25 eC= 10     im=println
+; kd=  6 bL= 25 bC= 11 eL= 25 eC= 11     im=(
+; kd=  3 bL= 25 bC= 12 eL= 25 eC= 12     im=y
+; kd=  7 bL= 25 bC= 13 eL= 25 eC= 13     im=)
+          p         y
+          dout
+          pc        '\n'
+          aout
+; kd=  5 bL= 25 bC= 14 eL= 25 eC= 14     im=;
+;    println(20);
+; kd=  1 bL= 26 bC=  4 eL= 26 eC= 10     im=println
+; kd=  6 bL= 26 bC= 11 eL= 26 eC= 11     im=(
+; kd=  2 bL= 26 bC= 12 eL= 26 eC= 13     im=20
+; kd=  7 bL= 26 bC= 14 eL= 26 eC= 14     im=)
+          pwc       20
+          dout
+          pc        '\n'
+          aout
+; kd=  5 bL= 26 bC= 15 eL= 26 eC= 15     im=;
+;    x = 1 + (2 + (3+ 4));
+; kd=  3 bL= 27 bC=  4 eL= 27 eC=  4     im=x
+; kd=  4 bL= 27 bC=  6 eL= 27 eC=  6     im==
+          pc        x
+; kd=  2 bL= 27 bC=  8 eL= 27 eC=  8     im=1
+; kd=  8 bL= 27 bC= 10 eL= 27 eC= 10     im=+
+          pwc       1
+; kd=  6 bL= 27 bC= 12 eL= 27 eC= 12     im=(
+; kd=  2 bL= 27 bC= 13 eL= 27 eC= 13     im=2
+; kd=  8 bL= 27 bC= 15 eL= 27 eC= 15     im=+
+          pwc       2
+; kd=  6 bL= 27 bC= 17 eL= 27 eC= 17     im=(
+; kd=  2 bL= 27 bC= 18 eL= 27 eC= 18     im=3
+; kd=  8 bL= 27 bC= 19 eL= 27 eC= 19     im=+
+          pwc       3
+; kd=  2 bL= 27 bC= 21 eL= 27 eC= 21     im=4
+; kd=  7 bL= 27 bC= 22 eL= 27 eC= 22     im=)
+          pwc       4
+          add 
+; kd=  7 bL= 27 bC= 23 eL= 27 eC= 23     im=)
+          add 
+; kd=  5 bL= 27 bC= 24 eL= 27 eC= 24     im=;
+          add 
+          stav
+;    println(x);
+; kd=  1 bL= 28 bC=  4 eL= 28 eC= 10     im=println
+; kd=  6 bL= 28 bC= 11 eL= 28 eC= 11     im=(
+; kd=  3 bL= 28 bC= 12 eL= 28 eC= 12     im=x
+; kd=  7 bL= 28 bC= 13 eL= 28 eC= 13     im=)
+          p         x
+          dout
+          pc        '\n'
+          aout
+; kd=  5 bL= 28 bC= 14 eL= 28 eC= 14     im=;
+;    println(10);
+; kd=  1 bL= 29 bC=  4 eL= 29 eC= 10     im=println
+; kd=  6 bL= 29 bC= 11 eL= 29 eC= 11     im=(
+; kd=  2 bL= 29 bC= 12 eL= 29 eC= 13     im=10
+; kd=  7 bL= 29 bC= 14 eL= 29 eC= 14     im=)
+          pwc       10
+          dout
+          pc        '\n'
+          aout
+; kd=  5 bL= 29 bC= 15 eL= 29 eC= 15     im=;
+;    x = 1 + 2 + 3 + 4 + 5;
+; kd=  3 bL= 30 bC=  4 eL= 30 eC=  4     im=x
+; kd=  4 bL= 30 bC=  6 eL= 30 eC=  6     im==
+          pc        x
+; kd=  2 bL= 30 bC=  8 eL= 30 eC=  8     im=1
+; kd=  8 bL= 30 bC= 10 eL= 30 eC= 10     im=+
+          pwc       1
+; kd=  2 bL= 30 bC= 12 eL= 30 eC= 12     im=2
+; kd=  8 bL= 30 bC= 14 eL= 30 eC= 14     im=+
+          pwc       2
+          add 
+; kd=  2 bL= 30 bC= 16 eL= 30 eC= 16     im=3
+; kd=  8 bL= 30 bC= 18 eL= 30 eC= 18     im=+
+          pwc       3
+          add 
+; kd=  2 bL= 30 bC= 20 eL= 30 eC= 20     im=4
+; kd=  8 bL= 30 bC= 22 eL= 30 eC= 22     im=+
+          pwc       4
+          add 
+; kd=  2 bL= 30 bC= 24 eL= 30 eC= 24     im=5
+; kd=  5 bL= 30 bC= 25 eL= 30 eC= 25     im=;
+          pwc       5
+          add 
+          stav
+;    println(x);
+; kd=  1 bL= 31 bC=  4 eL= 31 eC= 10     im=println
+; kd=  6 bL= 31 bC= 11 eL= 31 eC= 11     im=(
+; kd=  3 bL= 31 bC= 12 eL= 31 eC= 12     im=x
+; kd=  7 bL= 31 bC= 13 eL= 31 eC= 13     im=)
+          p         x
+          dout
+          pc        '\n'
+          aout
+; kd=  5 bL= 31 bC= 14 eL= 31 eC= 14     im=;
+;    println(15);
+; kd=  1 bL= 32 bC=  4 eL= 32 eC= 10     im=println
+; kd=  6 bL= 32 bC= 11 eL= 32 eC= 11     im=(
+; kd=  2 bL= 32 bC= 12 eL= 32 eC= 13     im=15
+; kd=  7 bL= 32 bC= 14 eL= 32 eC= 14     im=)
+          pwc       15
+          dout
+          pc        '\n'
+          aout
+; kd=  5 bL= 32 bC= 15 eL= 32 eC= 15     im=;
+;    println("S2 test done");
+; kd=  1 bL= 33 bC=  4 eL= 33 eC= 10     im=println
+; kd=  6 bL= 33 bC= 11 eL= 33 eC= 11     im=(
+; kd= 16 bL= 33 bC= 12 eL= 33 eC= 25     im="S2 test done"
+; kd=  7 bL= 33 bC= 26 eL= 33 eC= 26     im=)
+          pc        @L1
+          sout
+^@L1:     dw        "S2 test done"
+          pc        '\n'
+          aout
+; kd=  5 bL= 33 bC= 27 eL= 33 eC= 27     im=;
+; //==========================================================
+; // Add support, println with zero arguments, println and 
+; // print with string argument, cascaded assignment 
+; // statement, unary plus and minus, and readint statement.
+;    println("four lines follow");
+; kd=  1 bL= 38 bC=  4 eL= 38 eC= 10     im=println
+; kd=  6 bL= 38 bC= 11 eL= 38 eC= 11     im=(
+; kd= 16 bL= 38 bC= 12 eL= 38 eC= 30     im="four lines follow"
+; kd=  7 bL= 38 bC= 31 eL= 38 eC= 31     im=)
+          pc        @L2
+          sout
+^@L2:     dw        "four lines follow"
+          pc        '\n'
+          aout
+; kd=  5 bL= 38 bC= 32 eL= 38 eC= 32     im=;
+;    print("one line");
+; kd= 14 bL= 39 bC=  4 eL= 39 eC=  8     im=print
+; kd=  6 bL= 39 bC=  9 eL= 39 eC=  9     im=(
+; kd= 16 bL= 39 bC= 10 eL= 39 eC= 19     im="one line"
+; kd=  7 bL= 39 bC= 20 eL= 39 eC= 20     im=)
+          pc        @L3
+          sout
+^@L3:     dw        "one line"
+; kd=  5 bL= 39 bC= 21 eL= 39 eC= 21     im=;
+;    println();
+; kd=  1 bL= 40 bC=  4 eL= 40 eC= 10     im=println
+; kd=  6 bL= 40 bC= 11 eL= 40 eC= 11     im=(
+; kd=  7 bL= 40 bC= 12 eL= 40 eC= 12     im=)
+          pc        '\n'
+          aout
+; kd=  5 bL= 40 bC= 13 eL= 40 eC= 13     im=;
+;    println("one line");
+; kd=  1 bL= 41 bC=  4 eL= 41 eC= 10     im=println
+; kd=  6 bL= 41 bC= 11 eL= 41 eC= 11     im=(
+; kd= 16 bL= 41 bC= 12 eL= 41 eC= 21     im="one line"
+; kd=  7 bL= 41 bC= 22 eL= 41 eC= 22     im=)
+          pc        @L4
+          sout
+^@L4:     dw        "one line"
+          pc        '\n'
+          aout
+; kd=  5 bL= 41 bC= 23 eL= 41 eC= 23     im=;
+;    println("third line\nfourth line");
+; kd=  1 bL= 42 bC=  4 eL= 42 eC= 10     im=println
+; kd=  6 bL= 42 bC= 11 eL= 42 eC= 11     im=(
+; kd= 16 bL= 42 bC= 12 eL= 42 eC= 36     im="third line\nfourth line"
+; kd=  7 bL= 42 bC= 37 eL= 42 eC= 37     im=)
+          pc        @L5
+          sout
+^@L5:     dw        "third line\nfourth line"
+          pc        '\n'
+          aout
+; kd=  5 bL= 42 bC= 38 eL= 42 eC= 38     im=;
+;    x = y = z = + - - - - - + -7;
+; kd=  3 bL= 43 bC=  4 eL= 43 eC=  4     im=x
+; kd=  4 bL= 43 bC=  6 eL= 43 eC=  6     im==
+          pc        x
+; kd=  3 bL= 43 bC=  8 eL= 43 eC=  8     im=y
+; kd=  4 bL= 43 bC= 10 eL= 43 eC= 10     im==
+          pc        y
+; kd=  3 bL= 43 bC= 12 eL= 43 eC= 12     im=z
+; kd=  4 bL= 43 bC= 14 eL= 43 eC= 14     im==
+          pc        z
+; kd=  8 bL= 43 bC= 16 eL= 43 eC= 16     im=+
+; kd=  9 bL= 43 bC= 18 eL= 43 eC= 18     im=-
+; kd=  9 bL= 43 bC= 20 eL= 43 eC= 20     im=-
+; kd=  9 bL= 43 bC= 22 eL= 43 eC= 22     im=-
+; kd=  9 bL= 43 bC= 24 eL= 43 eC= 24     im=-
+; kd=  9 bL= 43 bC= 26 eL= 43 eC= 26     im=-
+; kd=  8 bL= 43 bC= 28 eL= 43 eC= 28     im=+
+; kd=  9 bL= 43 bC= 30 eL= 43 eC= 30     im=-
+; kd=  2 bL= 43 bC= 31 eL= 43 eC= 31     im=7
+; kd=  5 bL= 43 bC= 32 eL= 43 eC= 32     im=;
+          pwc       7
+          dupe
+          rot 
+          stav
+          dupe
+          rot 
+          stav
+          stav
+;    print(x);
+; kd= 14 bL= 44 bC=  4 eL= 44 eC=  8     im=print
+; kd=  6 bL= 44 bC=  9 eL= 44 eC=  9     im=(
+; kd=  3 bL= 44 bC= 10 eL= 44 eC= 10     im=x
+; kd=  7 bL= 44 bC= 11 eL= 44 eC= 11     im=)
+          p         x
+          dout
+; kd=  5 bL= 44 bC= 12 eL= 44 eC= 12     im=;
+;    print(" = ");
+; kd= 14 bL= 45 bC=  4 eL= 45 eC=  8     im=print
+; kd=  6 bL= 45 bC=  9 eL= 45 eC=  9     im=(
+; kd= 16 bL= 45 bC= 10 eL= 45 eC= 14     im=" = "
+; kd=  7 bL= 45 bC= 15 eL= 45 eC= 15     im=)
+          pc        @L6
+          sout
+^@L6:     dw        " = "
+; kd=  5 bL= 45 bC= 16 eL= 45 eC= 16     im=;
+;    print(y);
+; kd= 14 bL= 46 bC=  4 eL= 46 eC=  8     im=print
+; kd=  6 bL= 46 bC=  9 eL= 46 eC=  9     im=(
+; kd=  3 bL= 46 bC= 10 eL= 46 eC= 10     im=y
+; kd=  7 bL= 46 bC= 11 eL= 46 eC= 11     im=)
+          p         y
+          dout
+; kd=  5 bL= 46 bC= 12 eL= 46 eC= 12     im=;
+;    print(" = ");
+; kd= 14 bL= 47 bC=  4 eL= 47 eC=  8     im=print
+; kd=  6 bL= 47 bC=  9 eL= 47 eC=  9     im=(
+; kd= 16 bL= 47 bC= 10 eL= 47 eC= 14     im=" = "
+; kd=  7 bL= 47 bC= 15 eL= 47 eC= 15     im=)
+          pc        @L7
+          sout
+^@L7:     dw        " = "
+; kd=  5 bL= 47 bC= 16 eL= 47 eC= 16     im=;
+;    print(z);
+; kd= 14 bL= 48 bC=  4 eL= 48 eC=  8     im=print
+; kd=  6 bL= 48 bC=  9 eL= 48 eC=  9     im=(
+; kd=  3 bL= 48 bC= 10 eL= 48 eC= 10     im=z
+; kd=  7 bL= 48 bC= 11 eL= 48 eC= 11     im=)
+          p         z
+          dout
+; kd=  5 bL= 48 bC= 12 eL= 48 eC= 12     im=;
+;    print(" = ");
+; kd= 14 bL= 49 bC=  4 eL= 49 eC=  8     im=print
+; kd=  6 bL= 49 bC=  9 eL= 49 eC=  9     im=(
+; kd= 16 bL= 49 bC= 10 eL= 49 eC= 14     im=" = "
+; kd=  7 bL= 49 bC= 15 eL= 49 eC= 15     im=)
+          pc        @L8
+          sout
+^@L8:     dw        " = "
+; kd=  5 bL= 49 bC= 16 eL= 49 eC= 16     im=;
+;    println(7);
+; kd=  1 bL= 50 bC=  4 eL= 50 eC= 10     im=println
+; kd=  6 bL= 50 bC= 11 eL= 50 eC= 11     im=(
+; kd=  2 bL= 50 bC= 12 eL= 50 eC= 12     im=7
+; kd=  7 bL= 50 bC= 13 eL= 50 eC= 13     im=)
+          pwc       7
+          dout
+          pc        '\n'
+          aout
+; kd=  5 bL= 50 bC= 14 eL= 50 eC= 14     im=;
+;    z = -(+x - + + - + + - + + + + - + + - + + -y);
+; kd=  3 bL= 51 bC=  4 eL= 51 eC=  4     im=z
+; kd=  4 bL= 51 bC=  6 eL= 51 eC=  6     im==
+          pc        z
+; kd=  9 bL= 51 bC=  8 eL= 51 eC=  8     im=-
+; kd=  6 bL= 51 bC=  9 eL= 51 eC=  9     im=(
+; kd=  8 bL= 51 bC= 10 eL= 51 eC= 10     im=+
+; kd=  3 bL= 51 bC= 11 eL= 51 eC= 11     im=x
+; kd=  9 bL= 51 bC= 13 eL= 51 eC= 13     im=-
+          p         x
+; kd=  8 bL= 51 bC= 15 eL= 51 eC= 15     im=+
+; kd=  8 bL= 51 bC= 17 eL= 51 eC= 17     im=+
+; kd=  9 bL= 51 bC= 19 eL= 51 eC= 19     im=-
+; kd=  8 bL= 51 bC= 21 eL= 51 eC= 21     im=+
+; kd=  8 bL= 51 bC= 23 eL= 51 eC= 23     im=+
+; kd=  9 bL= 51 bC= 25 eL= 51 eC= 25     im=-
+; kd=  8 bL= 51 bC= 27 eL= 51 eC= 27     im=+
+; kd=  8 bL= 51 bC= 29 eL= 51 eC= 29     im=+
+; kd=  8 bL= 51 bC= 31 eL= 51 eC= 31     im=+
+; kd=  8 bL= 51 bC= 33 eL= 51 eC= 33     im=+
+; kd=  9 bL= 51 bC= 35 eL= 51 eC= 35     im=-
+; kd=  8 bL= 51 bC= 37 eL= 51 eC= 37     im=+
+; kd=  8 bL= 51 bC= 39 eL= 51 eC= 39     im=+
+; kd=  9 bL= 51 bC= 41 eL= 51 eC= 41     im=-
+; kd=  8 bL= 51 bC= 43 eL= 51 eC= 43     im=+
+; kd=  8 bL= 51 bC= 45 eL= 51 eC= 45     im=+
+; kd=  9 bL= 51 bC= 47 eL= 51 eC= 47     im=-
+; kd=  3 bL= 51 bC= 48 eL= 51 eC= 48     im=y
+; kd=  7 bL= 51 bC= 49 eL= 51 eC= 49     im=)
+          p         y
+          neg 
+          sub 
+; kd=  5 bL= 51 bC= 50 eL= 51 eC= 50     im=;
+          neg 
+          stav
+;    print ("-14 = ");
+; kd= 14 bL= 52 bC=  4 eL= 52 eC=  8     im=print
+; kd=  6 bL= 52 bC= 10 eL= 52 eC= 10     im=(
+; kd= 16 bL= 52 bC= 11 eL= 52 eC= 18     im="-14 = "
+; kd=  7 bL= 52 bC= 19 eL= 52 eC= 19     im=)
+          pc        @L9
+          sout
+^@L9:     dw        "-14 = "
+; kd=  5 bL= 52 bC= 20 eL= 52 eC= 20     im=;
+;    print(z);
+; kd= 14 bL= 53 bC=  4 eL= 53 eC=  8     im=print
+; kd=  6 bL= 53 bC=  9 eL= 53 eC=  9     im=(
+; kd=  3 bL= 53 bC= 10 eL= 53 eC= 10     im=z
+; kd=  7 bL= 53 bC= 11 eL= 53 eC= 11     im=)
+          p         z
+          dout
+; kd=  5 bL= 53 bC= 12 eL= 53 eC= 12     im=;
+;    print(" = ");
+; kd= 14 bL= 54 bC=  4 eL= 54 eC=  8     im=print
+; kd=  6 bL= 54 bC=  9 eL= 54 eC=  9     im=(
+; kd= 16 bL= 54 bC= 10 eL= 54 eC= 14     im=" = "
+; kd=  7 bL= 54 bC= 15 eL= 54 eC= 15     im=)
+          pc        @L10
+          sout
+^@L10:    dw        " = "
+; kd=  5 bL= 54 bC= 16 eL= 54 eC= 16     im=;
+;    println(-(-(+(-(14))))); 
+; kd=  1 bL= 55 bC=  4 eL= 55 eC= 10     im=println
+; kd=  6 bL= 55 bC= 11 eL= 55 eC= 11     im=(
+; kd=  9 bL= 55 bC= 12 eL= 55 eC= 12     im=-
+; kd=  6 bL= 55 bC= 13 eL= 55 eC= 13     im=(
+; kd=  9 bL= 55 bC= 14 eL= 55 eC= 14     im=-
+; kd=  6 bL= 55 bC= 15 eL= 55 eC= 15     im=(
+; kd=  8 bL= 55 bC= 16 eL= 55 eC= 16     im=+
+; kd=  6 bL= 55 bC= 17 eL= 55 eC= 17     im=(
+; kd=  9 bL= 55 bC= 18 eL= 55 eC= 18     im=-
+; kd=  6 bL= 55 bC= 19 eL= 55 eC= 19     im=(
+; kd=  2 bL= 55 bC= 20 eL= 55 eC= 21     im=14
+; kd=  7 bL= 55 bC= 22 eL= 55 eC= 22     im=)
+          pwc       14
+; kd=  7 bL= 55 bC= 23 eL= 55 eC= 23     im=)
+          neg 
+; kd=  7 bL= 55 bC= 24 eL= 55 eC= 24     im=)
+; kd=  7 bL= 55 bC= 25 eL= 55 eC= 25     im=)
+          neg 
+; kd=  7 bL= 55 bC= 26 eL= 55 eC= 26     im=)
+          neg 
+          dout
+          pc        '\n'
+          aout
+; kd=  5 bL= 55 bC= 27 eL= 55 eC= 27     im=;
+;    // no comment in following statement because // inside string
+;    println("////Enter integer////");   
+; kd=  1 bL= 57 bC=  4 eL= 57 eC= 10     im=println
+; kd=  6 bL= 57 bC= 11 eL= 57 eC= 11     im=(
+; kd= 16 bL= 57 bC= 12 eL= 57 eC= 34     im="////Enter integer////"
+; kd=  7 bL= 57 bC= 35 eL= 57 eC= 35     im=)
+          pc        @L11
+          sout
+^@L11:    dw        "////Enter integer////"
+          pc        '\n'
+          aout
+; kd=  5 bL= 57 bC= 36 eL= 57 eC= 36     im=;
+;    readint(q);
+; kd= 15 bL= 58 bC=  4 eL= 58 eC= 10     im=readint
+; kd=  6 bL= 58 bC= 11 eL= 58 eC= 11     im=(
+; kd=  3 bL= 58 bC= 12 eL= 58 eC= 12     im=q
+; kd=  7 bL= 58 bC= 13 eL= 58 eC= 13     im=)
+          pc        q
+          din 
+          stav
+; kd=  5 bL= 58 bC= 14 eL= 58 eC= 14     im=;
+;    print("= ");
+; kd= 14 bL= 59 bC=  4 eL= 59 eC=  8     im=print
+; kd=  6 bL= 59 bC=  9 eL= 59 eC=  9     im=(
+; kd= 16 bL= 59 bC= 10 eL= 59 eC= 13     im="= "
+; kd=  7 bL= 59 bC= 14 eL= 59 eC= 14     im=)
+          pc        @L12
+          sout
+^@L12:    dw        "= "
+; kd=  5 bL= 59 bC= 15 eL= 59 eC= 15     im=;
+;    println(q + + + + 1 - 1); 
+; kd=  1 bL= 60 bC=  4 eL= 60 eC= 10     im=println
+; kd=  6 bL= 60 bC= 11 eL= 60 eC= 11     im=(
+; kd=  3 bL= 60 bC= 12 eL= 60 eC= 12     im=q
+; kd=  8 bL= 60 bC= 14 eL= 60 eC= 14     im=+
+          p         q
+; kd=  8 bL= 60 bC= 16 eL= 60 eC= 16     im=+
+; kd=  8 bL= 60 bC= 18 eL= 60 eC= 18     im=+
+; kd=  8 bL= 60 bC= 20 eL= 60 eC= 20     im=+
+; kd=  2 bL= 60 bC= 22 eL= 60 eC= 22     im=1
+; kd=  9 bL= 60 bC= 24 eL= 60 eC= 24     im=-
+          pwc       1
+          add 
+; kd=  2 bL= 60 bC= 26 eL= 60 eC= 26     im=1
+; kd=  7 bL= 60 bC= 27 eL= 60 eC= 27     im=)
+          pwc       1
+          sub 
+          dout
+          pc        '\n'
+          aout
+; kd=  5 bL= 60 bC= 28 eL= 60 eC= 28     im=;
+;    println("S3 test done"); 
+; kd=  1 bL= 61 bC=  4 eL= 61 eC= 10     im=println
+; kd=  6 bL= 61 bC= 11 eL= 61 eC= 11     im=(
+; kd= 16 bL= 61 bC= 12 eL= 61 eC= 25     im="S3 test done"
+; kd=  7 bL= 61 bC= 26 eL= 61 eC= 26     im=)
+          pc        @L13
+          sout
+^@L13:    dw        "S3 test done"
+          pc        '\n'
+          aout
+; kd=  5 bL= 61 bC= 27 eL= 61 eC= 27     im=;
+; kd=  0 bL= 61 bC= 29 eL= 61 eC= 29     im=<END>
+          
+          halt
+
+x:        dw        0
+y:        dw        0
+z:        dw        0
+q:        dw        0

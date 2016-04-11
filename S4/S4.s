@@ -33,7 +33,7 @@
    println("S2 test done");
 //==========================================================
 // Add support, println with zero arguments, println and 
-// print with string argument, cascaded assignment 
+// print with string argument,  cascaded assignment 
 // statement, unary plus and minus, and readint statement.
    println("four lines follow");
    print("one line");
@@ -59,3 +59,62 @@
    print("= ");
    println(q + + + + 1 - 1); 
    println("S3 test done"); 
+//==========================================================
+// Add support for while, do-while, if, if-else, and escape 
+// sequences within a string.
+   x = 1;
+   println("2 1 on separate lines");
+   while(x)               // nested while loops
+   {
+      y = 2;
+      while (y)
+      {
+         println(y);
+         y = y -  1;      
+      }
+      x = x - 1;
+   }
+   zero = 0;
+   while (zero)
+      println("bug");
+   x = 0 - 3;
+   print("hello -3 up to hello -1\n");
+   while (x)              // if inside while
+   {
+      if (x) print("hello ");
+      else println("bug1");
+      println(x);
+      x = x + 1;
+   }
+   x = 2;
+   print("bye 2 down to bye 1\n");
+   do                     // do-while loop
+   {
+      print("bye ");
+      println(x);
+      x = x - 1;
+   } while (x);
+   x = 1;
+   println("Next line should \
+say \"hello\" with the quotes");
+   if (x)                 // nested if
+   if (x)
+   if (x) 
+   {
+      print("\"hel");
+      println("lo\"");
+   }
+   else 
+   {
+      println("bug3");
+   }
+   print("good = ");
+   if (zero)             // execute else part 
+   {
+      println("bug4");
+   }
+   else 
+      println("good");
+   println("Next line should say \"bye\" without the quotes\nbye");
+   println("\"3 backslashes and a double quote \\\\\\\" within a string\"");
+   println("S4 test done");

@@ -1,4 +1,4 @@
-// Hand-written S2 compiler in C
+// Hand-written s3 compiler in C
 #include <stdio.h>  // needed by I/O functions
 #include <stdlib.h> // needed by malloc and exit
 #include <string.h> // needed by str functions
@@ -27,8 +27,13 @@
 #define PLUS 8
 #define MINUS 9
 #define TIMES 10
-#define ERROR 11
-#define STRING 12
+#define DIVISION 11
+#define LEFTBRACKET 12
+#define RIGHTBRACKET 13
+#define PRINT 14
+#define READINT 15
+#define STRING 16
+#define ERROR 17
 
 time_t timer;    // for asctime
 
@@ -37,11 +42,12 @@ time_t timer;    // for asctime
 // precede function call so compiler can 
 // check for correct type, number of args
 void expr(void);
+void compoundStatement(void);
 
 // Global Variables
-
+int labelNumber = 0;
 // tokenImage used in error messages.  See consume function.
-char *tokenImage[12] =   
+char *tokenImage[18] =   
 {
   "<END>",
   "\"println\"",
@@ -54,11 +60,17 @@ char *tokenImage[12] =
   "\"+\"",
   "\"-\"",
   "\"*\"",
+  "\"/\"",
+  "\"{\"",
+  "\"}\"",
+  "\"print\"",
+  "\"readint\"",
+  "<STRING>",
   "<ERROR>"
 };
 
 char inFileName[MAX], outFileName[MAX], inputLine[MAX];
-int debug = FALSE;
+int debug = TRUE;
 
 char *symbol[SYMTABSIZE];     // symbol table
 int symbolx;                  // index into symbol table
@@ -78,32 +90,18 @@ FILE *inFile, *outFile;     // file pointers
 int currentChar = '\n';
 int currentColumnNumber;
 int currentLineNumber;
-int *labelNumber = 0;
 TOKEN *currentToken;
 TOKEN *previousToken; 
 
 //-----------------------------------------
 // Abnormal end.  
-// Close files so S2.a has max info for debugging
+// Close files so s3.a has max info for debugging
 void abend(void)
 {
    fclose(inFile);
    fclose(outFile);
    exit(1);
 }
-
-char* getLabel(void)
-{
-  char temp[80];
-  char *label = "@L";
- // strcpy(temp, label);
- // strcat(temp, labelNumber);
- // labelNumber++;
-
-
-  return NULL;
-}
-
 //-----------------------------------------
 void displayErrorLoc(void)
 {
@@ -159,13 +157,10 @@ void getNextChar(void)
     // get next char from inputLine
     currentChar =  inputLine[currentColumnNumber++];
 
-    // in S2, test for single-line comment goes here
-   if( currentChar == '/' && inputLine[ currentColumnNumber] == '/'){
-
+    // in s3, test for single-line comment goes here
+       if( currentChar == '/' && inputLine[ currentColumnNumber] == '/')
         currentChar = '\n';
-
-    }
-  
+    
 }
 //---------------------------------------
 // This function is tokenizer (aka lexical analyzer, scanner)
@@ -233,10 +228,53 @@ TOKEN *getNextToken(void)
       t -> image = strdup(buffer);
 
       // check if keyword
-      if (!strcmp(t -> image, "println"))
+      if (!strcmp(t -> image, "println")){
         t -> kind = PRINTLN;
-      else  // not a keyword so kind is ID
+      }
+      else if (!strcmp(t -> image, "print")){
+        t -> kind = PRINT;
+      }else if (!strcmp(t -> image, "readint")){
+        t -> kind = READINT;
+      }
+      else{  // not a keyword so kind is ID
         t -> kind = ID;
+      }
+    }else if ( currentChar == '"' ){
+
+      do // build token image in buffer
+      {
+
+         t -> kind = STRING;
+         buffer[bufferx++] = currentChar; 
+         t -> endLine = currentLineNumber;
+         t -> endColumn = currentColumnNumber;
+        getNextChar();
+
+        if( currentChar == '\n' || currentChar == '\r'){
+         // t -> kind = ERROR;
+         // currentChar = END;
+         // break;
+          currentChar = '/';
+        }
+
+
+
+      } while ( currentChar != '"' );
+
+      if( currentChar != END){
+
+
+        buffer[bufferx++] = currentChar; 
+        buffer[bufferx] = '\0';
+        t -> endLine = currentLineNumber;
+        t -> endColumn = currentColumnNumber;
+
+        // save buffer as String in token.image
+       t -> image = strdup(buffer);
+       t -> kind = STRING;
+      }
+      
+      getNextChar();
     }
 
     else  // process single-character token
@@ -263,11 +301,16 @@ TOKEN *getNextToken(void)
           break;                               
         case '*':
           t -> kind = TIMES;
-          break; 
-        case '"':
-          t -> kind = STRING;
-          break; 
-
+          break;                           
+        case '/':
+          t -> kind = DIVISION;
+          break;
+        case '{':
+          t -> kind = LEFTBRACKET;
+          break;                               
+        case '}':
+          t -> kind = RIGHTBRACKET;
+          break;                         
         default:
           t -> kind = ERROR;
           break;                               
@@ -293,7 +336,6 @@ TOKEN *getNextToken(void)
         "; kd=%3d bL=%3d bC=%3d eL=%3d eC=%3d     im=%s\n",
         t -> kind, t -> beginLine, t -> beginColumn, 
         t -> endLine, t -> endColumn, t -> image);
-
     return t;     // return token to parser
 }     
 //-----------------------------------------
@@ -343,7 +385,7 @@ void consume(int expected)
     }
 }
 //-----------------------------------------
-// This function not used in S2
+// This function not used in s3
 // getToken(i) returns ith token without advancing
 // in token stream.  getToken(0) returns 
 // previousToken.  getToken(1) returns currentToken.
@@ -404,31 +446,16 @@ void endCode(void)
     for (i=0; i < symbolx; i++) 
        emitdw(symbol[i], "0");      
 }
-
-//-----------------------------------------
-
-void readint(int x){
-
- // emitInstruction2("din", x);
-  //emitInstruction1("din");
- // emitInstruction2("stav");
-
-  
-}
-
-
 //-----------------------------------------
 void factor(void)
 {  
     TOKEN *t;
     char temp[MAX];
 
-
    // printf("%s ", currentToken -> image);
     switch(currentToken -> kind)
     {
       case UNSIGNED:
-
         t = currentToken;
         consume(UNSIGNED);
         emitInstruction2("pwc", t -> image);
@@ -439,77 +466,66 @@ void factor(void)
         enter(t -> image);
         emitInstruction2("p", t -> image);
         break;
+      case PLUS:
+        consume(PLUS);
+        factor();
+        break;
+
       case LEFTPAREN:
         consume(LEFTPAREN);
         expr();
         consume(RIGHTPAREN);
         break;
-      case PLUS:
-
-        consume(PLUS);
-        t = currentToken;
-        consume(UNSIGNED);
-        emitInstruction2("pwc", t -> image);
-
-        break;
-      case MINUS:
-
-          consume(MINUS);
-
-          switch(currentToken -> kind){
-
-            case UNSIGNED:
-
-                t = currentToken;
-                consume(UNSIGNED);
-                strcpy(temp, "-");
-                strcat(temp, t -> image);
-                emitInstruction2("pwc", temp);
-                break;
-
-            case ID:
-
-              t = currentToken;
-              consume(ID);
-              enter(t -> image);
-              emitInstruction2("p", t -> image);
-              emitInstruction1("neg");
-
-              break;
-
-            case RIGHTPAREN:
-
-              consume(RIGHTPAREN);
-              expr();
-              consume(LEFTPAREN);
-              emitInstruction1("neg");
-
-              break;
-
-            case PLUS:
-
-               consume(PLUS);
-                t = currentToken;
-                consume(UNSIGNED);
-                emitInstruction2("pwc", t -> image);
-                emitInstruction1("neg");
-            case MINUS: 
-
-             
-              consume(MINUS);
-              t = currentToken;
-              consume(UNSIGNED);
-              strcpy(temp, "-");
-              strcat(temp, t -> image);
-              emitInstruction2("pwc", temp);
-              break;
- 
-
-          }
-
-      break;
-        
       
+      case MINUS:
+        consume(MINUS);
+        switch( currentToken -> kind){
+
+
+          case UNSIGNED:
+            t = currentToken;
+            consume(UNSIGNED);
+            strcpy(temp, "-");
+            strcat(temp, t -> image);
+            emitInstruction2("pwc", t -> image);
+            break;
+          case ID:
+            t = currentToken;
+            consume(ID);
+            enter(t -> image);
+            emitInstruction2("p", t -> image);
+            emitInstruction1("neg");
+            break;
+
+          case LEFTPAREN:
+            consume(LEFTPAREN);
+            expr();
+            consume(RIGHTPAREN);
+            emitInstruction1("neg");
+
+            break;
+
+          case PLUS:
+            consume(PLUS);
+            factor();
+            break;
+
+            case MINUS:
+            consume(MINUS);
+            factor();
+            break;
+        }
+        break;
+
+      /*  t = currentToken;
+        consume(UNSIGNED);
+        strcpy(temp, "-");
+        strcat(temp, t -> image);
+        emitInstruction2("pwc", temp);
+        break;
+
+        */      
+     
       default:
         displayErrorLoc();
         printf("Scanning %s, expecting factor\n", currentToken ->
@@ -517,11 +533,10 @@ void factor(void)
         abend();
     }
 }
-
-
 //-----------------------------------------
 void factorList(void)
 {
+
     switch(currentToken -> kind)
     {
       case TIMES:
@@ -530,7 +545,16 @@ void factorList(void)
         emitInstruction1("mult");
         factorList();
         break;
+
+      case DIVISION:
+        consume(DIVISION);
+        factor();
+        emitInstruction1("div");
+        factorList();
+        break;
+     
       case PLUS:
+      case MINUS:
       case RIGHTPAREN:
       case SEMICOLON:
         ;
@@ -559,6 +583,12 @@ void termList(void)
         emitInstruction1("add");
         termList();
         break;
+      case MINUS:
+        consume(MINUS);
+        term();
+        emitInstruction1("sub");
+        termList();
+        break;
       case RIGHTPAREN:
       case SEMICOLON:
         ;
@@ -571,12 +601,51 @@ void termList(void)
         abend();
     }
 }
+
+//-----------------------------------------
+char* getLabel(void){
+
+  
+  char* label;
+  
+  sprintf(label, "@L%d", labelNumber++);
+  return label;
+}
+
 //-----------------------------------------
 void expr(void)
 {
     term();
     termList();
 }
+
+void assignmentTail(void){
+
+  TOKEN *t;
+  //LOOKAHEAD(2);
+ 
+  if(currentToken -> kind == ID && getToken(2) ->kind == ASSIGN){
+
+    
+       t = currentToken;
+      consume(ID);
+      enter(t -> image);
+      emitInstruction2("pc", t -> image);
+  
+      consume(ASSIGN);
+      assignmentTail();
+      emitInstruction1("dupe" );
+      emitInstruction1("rot" );
+      emitInstruction1("stav" );
+
+    }else{
+
+        expr();
+    }
+
+
+}
+
 //-----------------------------------------
 void assignmentStatement(void)
 {
@@ -584,56 +653,132 @@ void assignmentStatement(void)
 
     t = currentToken;
     consume(ID);
+
     enter(t -> image);
     emitInstruction2("pc", t -> image);
     consume(ASSIGN);
-    expr();
+    assignmentTail();
+    //expr();
     emitInstruction1("stav");
-    consume(SEMICOLON);
+    //consume(SEMICOLON);
 }
+
+void printArg(void){
+
+  char* label;
+  char* temp;
+  TOKEN *t;
+
+  switch(currentToken -> kind){
+
+   
+    case STRING:
+       
+        t = currentToken;
+        consume(STRING);
+        label = getLabel();
+         
+        sprintf(temp, "^%s", label);
+        emitInstruction2("pc", label);
+        emitInstruction1("sout");
+        emitdw(temp,  t -> image );
+        break;
+
+    case ID:
+    case UNSIGNED:
+    case LEFTPAREN:
+    case MINUS:
+
+      expr();
+      emitInstruction1("dout");
+    break;
+
+  }
+
+
+}
+
 //-----------------------------------------
-void printlnStatement(void)//Not complete
+void printlnStatement(void)
 {
 
-    TOKEN* t;
-    char temp[MAX];
-    char *label;
+  consume(PRINTLN);                                   
+  consume(LEFTPAREN);
 
-    t= currentToken;
-    
-     
-    consume(PRINTLN);
-    consume(LEFTPAREN);
-    
+  switch(currentToken -> kind ){
 
-    switch(currentToken -> kind)//Needs case for empty println();
-    {
-      case STRING: //Case for println with argument
-        
-        consume(STRING);
-        label = getLabel();//Returning null because it's not completed
-        emitInstruction2("pc", "label");
-        emitInstruction1("sout");
-        strcpy(temp, "^");
-        strcat(temp, "label");
-          
-        emitdw(temp, t->image);
+        case STRING:
+        case ID:
+        case UNSIGNED:
+        case LEFTPAREN:
+        case MINUS:
+         printArg();
+         break;
 
-        break;
-      
-      default: 
+        case RIGHTPAREN: 
+        ;
+        break; 
 
-      break; 
-       
     }
+    
+    emitInstruction2("pc", "'\\n'");
+    emitInstruction1("aout");
 
-
-    consume(STRING);
     consume(RIGHTPAREN);
     consume(SEMICOLON);
 }
 
+//-----------------------------------------
+void printStatement(void)
+{
 
+  consume(PRINT);                                   
+  consume(LEFTPAREN);
+
+    switch(currentToken -> kind ){
+
+        case STRING:
+        case ID:
+        case UNSIGNED:
+        case LEFTPAREN:
+         printArg();
+         break;
+
+
+        case RIGHTPAREN: 
+        ;
+        break; 
+
+    }
+    
+    consume(RIGHTPAREN);
+    consume(SEMICOLON);
+}
+
+//------------------------------
+void nullStatement(void)
+{
+   consume(SEMICOLON);
+}
+
+
+void readintStatement(void){
+
+  TOKEN *t;
+
+  consume(READINT);
+  consume(LEFTPAREN);
+
+  t = currentToken;
+  consume(ID);
+  emitInstruction2("pc", t -> image);
+  emitInstruction1("din");
+  emitInstruction1("stav");
+
+   consume(RIGHTPAREN);
+    consume(SEMICOLON);
+
+}
 
 //-----------------------------------------
 void statement(void)
@@ -645,6 +790,18 @@ void statement(void)
         break;
       case PRINTLN:    
         printlnStatement(); 
+        break;
+      case PRINT:    
+        printStatement(); 
+        break;
+        case READINT:
+        readintStatement();
+        break;
+      case SEMICOLON:
+        nullStatement();
+        break;
+      case LEFTBRACKET:
+        compoundStatement();
         break;
       default:  
         displayErrorLoc();      
@@ -660,9 +817,14 @@ void statementList(void)
     {
       case ID:
       case PRINTLN:
+      case PRINT:
+      case SEMICOLON:
+      case LEFTBRACKET:
+      case READINT:
         statement();
         statementList();
         break;
+      case RIGHTBRACKET:
       case END:
         ;                  
         break;
@@ -673,6 +835,14 @@ void statementList(void)
            currentToken -> image);        
         abend();
     }
+}
+
+//------------------------------
+void compoundStatement(void)
+{
+   consume(LEFTBRACKET);
+   statementList();
+   consume(RIGHTBRACKET);
 }
 //-----------------------------------------
 void program(void)
@@ -689,7 +859,7 @@ void parse(void)
 //-----------------------------------------
 int main(int argc, char *argv[])
 {
-   printf("S3 compiler written by Anthony B. Turner\n");
+   printf("s3 compiler written by Anthony B. Turner\n");
    if (argc != 2)
    {
       printf("Incorrect number of command line args\n");
@@ -721,7 +891,7 @@ int main(int argc, char *argv[])
     fprintf(outFile, "; Anthony B. Turner    %s",
        asctime(localtime(&timer)));
     fprintf(outFile, 
-       "; Output from S3 compiler\n");
+       "; Output from s3 compiler\n");
 
     parse();
 
